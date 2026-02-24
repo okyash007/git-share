@@ -49,8 +49,15 @@ app.get('/auth/github', (req, res) => {
   const state = crypto.randomBytes(16).toString('hex');
   req.session.oauthState = state;
 
+  // Dynamically determine the redirect_uri based on the environment hitting this endpoint
+  const protocol = process.env.NODE_ENV === 'production' || req.headers['x-forwarded-proto'] === 'https' ? 'https' : req.protocol;
+  let host = req.get('host');
+  // For production, if the host isn't git-share.yash.host, we could enforce it, but typically req.get('host') is exactly what the user sees.
+  const redirect_uri = `${protocol}://${host}/auth/github/callback`;
+
   const params = new URLSearchParams({
     client_id: process.env.GITHUB_CLIENT_ID,
+    redirect_uri,
     scope: 'read:user repo',
     state,
   });
