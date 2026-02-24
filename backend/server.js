@@ -12,6 +12,8 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.set('trust proxy', 1); // Trust first proxy (like Nginx or a load balancer)
+
 // ─── Middleware ───────────────────────────────────────────
 app.use(express.json());
 app.use(cors({
