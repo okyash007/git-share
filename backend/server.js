@@ -351,6 +351,27 @@ app.get('/api/shares/:shareId/file', async (req, res) => {
   }
 });
 
+// Get branches for a shared repo
+app.get('/api/shares/:shareId/branches', async (req, res) => {
+  try {
+    const share = await Share.findOne({ shareId: req.params.shareId });
+    if (!share || new Date() > share.expiresAt) {
+      return res.status(404).json({ error: 'Share not found or expired' });
+    }
+
+    const url = `https://api.github.com/repos/${share.repoFullName}/branches`;
+    const ghRes = await axios.get(url, {
+      headers: { Authorization: `Bearer ${share.accessToken}` },
+    });
+
+    const branches = ghRes.data.map(b => b.name);
+    res.json({ branches });
+  } catch (err) {
+    console.error('Branches error:', err.message);
+    res.status(500).json({ error: 'Failed to fetch branches' });
+  }
+});
+
 // Create a PR for multiple files in the shared repo
 app.post('/api/shares/:shareId/pr', async (req, res) => {
   try {
@@ -367,7 +388,7 @@ app.post('/api/shares/:shareId/pr', async (req, res) => {
 
     const token = share.accessToken;
     const repoFull = share.repoFullName;
-    const baseBranch = share.defaultBranch || 'main';
+    const baseBranch = req.body.baseBranch || share.defaultBranch || 'main';
     const newBranch = `gitshare-pr-${Date.now()}`;
 
     // 1. Get the SHA of the latest commit on the base branch
