@@ -51,7 +51,6 @@ app.get('/auth/github', (req, res) => {
 
   const params = new URLSearchParams({
     client_id: process.env.GITHUB_CLIENT_ID,
-    redirect_uri: `${process.env.FRONTEND_URL ? process.env.APP_URL || `http://localhost:${PORT}` : `http://localhost:${PORT}`}/auth/github/callback`,
     scope: 'read:user repo',
     state,
   });
